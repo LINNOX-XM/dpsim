@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Institute for Automation of Complex Power Systems,
+/* Copyright 2017-2021 Institute for Automation of Complex Power Systems,
  *                     EONERC, RWTH Aachen University
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -16,6 +16,7 @@
 #include <cps/SP/SP_Ph1_PiLine.h>
 #include <cps/SP/SP_Ph1_Shunt.h>
 #include <cps/SP/SP_Ph1_Transformer.h>
+#include <cps/SP/SP_Ph1_Transformer3W.h>
 #include <cps/SP/SP_Ph1_SolidStateTransformer.h>
 #include <cps/SP/SP_Ph1_Load.h>
 #include <cps/SP/SP_Ph1_Switch.h>

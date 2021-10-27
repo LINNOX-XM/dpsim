@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Institute for Automation of Complex Power Systems,
+/* Copyright 2017-2021 Institute for Automation of Complex Power Systems,
  *                     EONERC, RWTH Aachen University
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -16,6 +16,7 @@ SP::Ph1::Shunt::Shunt(String uid, String name, Logger::Level logLevel)
 	mSLog->info("Create {} of type {}", this->type(), name);
 	setTerminalNumber(1);
 
+	addAttribute<Real>("base_Voltage", &mBaseVoltage, Flags::read | Flags::write);
 	addAttribute<Real>("G", &mConductance, Flags::write | Flags::read);
 	addAttribute<Real>("B", &mSusceptance, Flags::write | Flags::read);
 }

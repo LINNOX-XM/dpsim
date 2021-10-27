@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Institute for Automation of Complex Power Systems,
+/* Copyright 2017-2021 Institute for Automation of Complex Power Systems,
  *                     EONERC, RWTH Aachen University
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -10,7 +10,6 @@
 
 using namespace DPsim;
 using namespace CPS;
-
 
 PFSolverPowerPolar::PFSolverPowerPolar(CPS::String name, const CPS::SystemTopology &system, CPS::Real timeStep, CPS::Logger::Level logLevel)
     : PFSolver(name, system, timeStep, logLevel){ }
@@ -306,11 +305,38 @@ void PFSolverPowerPolar::setSolution() {
                     baseVoltage_ = trans->attribute<CPS::Real>("nominal_voltage_end2")->get();
                     break;
                 }
-            else if (std::shared_ptr<CPS::SP::Ph1::SynchronGenerator> gen = std::dynamic_pointer_cast<CPS::SP::Ph1::SynchronGenerator>(comp)) {
-                    baseVoltage_ =gen->attribute<CPS::Real>("base_Voltage")->get();
+            }
+            else if (std::shared_ptr<CPS::SP::Ph1::Transformer3W> trans3W = std::dynamic_pointer_cast<CPS::SP::Ph1::Transformer3W>(comp)) {
+				if (trans3W->terminal(0)->node()->name() == node->name()){
+                    baseVoltage_ = trans3W->attribute<CPS::Real>("nominal_voltage_end1")->get();
                     break;
                 }
-            else
+				else if (trans3W->terminal(1)->node()->name() == node->name()){
+                    baseVoltage_ = trans3W->attribute<CPS::Real>("nominal_voltage_end2")->get();
+                    break;
+                }
+                else if (trans3W->terminal(2)->node()->name() == node->name()){
+                    baseVoltage_ = trans3W->attribute<CPS::Real>("nominal_voltage_end3")->get();
+                    break;
+                }
+            }
+            else if (std::shared_ptr<CPS::SP::Ph1::SynchronGenerator> gen = std::dynamic_pointer_cast<CPS::SP::Ph1::SynchronGenerator>(comp)) {
+                baseVoltage_ = gen->attribute<CPS::Real>("base_Voltage")->get();
+                break;
+            }
+            else if (std::shared_ptr<CPS::SP::Ph1::NetworkInjection> extnet = std::dynamic_pointer_cast<CPS::SP::Ph1::NetworkInjection>(comp)) {
+                baseVoltage_ = extnet->attribute<CPS::Real>("base_Voltage")->get();
+                break;
+            }
+            else if (std::shared_ptr<CPS::SP::Ph1::Shunt> shunt = std::dynamic_pointer_cast<CPS::SP::Ph1::Shunt>(comp)) {
+                baseVoltage_ = shunt->attribute<CPS::Real>("base_Voltage")->get();
+                break;
+            }
+            else if (std::shared_ptr<CPS::SP::Ph1::Load> load = std::dynamic_pointer_cast<CPS::SP::Ph1::Load>(comp)) {
+                baseVoltage_ = load->attribute<CPS::Real>("V_nom")->get();
+                break;
+            }
+            else {
                 mSLog->warn("Unable to get base voltage at {}", node->name());
             }
         }
@@ -341,6 +367,17 @@ void PFSolverPowerPolar::calculateBranchFlow() {
 		VectorComp flow_on_branch = v.array()*current.conjugate().array();
 		trafo->updateBranchFlow(current, flow_on_branch);
 	}
+    for (auto trafo3W : mTransformers3W) {
+		VectorComp v(3);
+		v(0) = sol_V_complex.coeff(trafo3W->node(0)->matrixNodeIndex());
+		v(1) = sol_V_complex.coeff(trafo3W->node(1)->matrixNodeIndex());
+        v(2) = sol_V_complex.coeff(trafo3W->node(2)->matrixNodeIndex());
+		/// I = Y * V
+		VectorComp current = trafo3W->Y_element() * v;
+		/// pf on branch [S_01; S_10] = [V_0 * conj(I_0); V_1 * conj(I_1)]
+		VectorComp flow_on_branch = v.array()*current.conjugate().array();
+		trafo3W->updateBranchFlow(current, flow_on_branch);
+	}
 }
 
 void PFSolverPowerPolar::calculateNodalInjection() {
@@ -357,6 +394,10 @@ void PFSolverPowerPolar::calculateNodalInjection() {
 			for (auto comp : mSystem.mComponentsAtNode[node]) {
 				if (std::shared_ptr<CPS::SP::Ph1::Transformer> trafo = std::dynamic_pointer_cast<CPS::SP::Ph1::Transformer>(comp)) {
 					trafo->storeNodalInjection(sol_S_complex.coeff(node->matrixNodeIndex()));
+					break;
+				}
+                else if (std::shared_ptr<CPS::SP::Ph1::Transformer3W> trafo3W = std::dynamic_pointer_cast<CPS::SP::Ph1::Transformer3W>(comp)) {
+					trafo3W->storeNodalInjection(sol_S_complex.coeff(node->matrixNodeIndex()));
 					break;
 				}
 			}
@@ -404,7 +445,7 @@ void PFSolverPowerPolar::calculatePAndQAtSlackBus() {
             if(gen->mPowerflowBusType==CPS::PowerflowBusType::VD){
 			    gen->updatePowerInjection(S*mBaseApparentPower);
                 break;
-            } 
+            }
         }
     }
 }
@@ -423,7 +464,7 @@ void PFSolverPowerPolar::calculateQAtPVBuses() {
             if(gen->mPowerflowBusType==CPS::PowerflowBusType::PV){
 			    gen->updateReactivePowerInjection(S*mBaseApparentPower);
                 break;
-            }        
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Institute for Automation of Complex Power Systems,
+/* Copyright 2017-2021 Institute for Automation of Complex Power Systems,
  *                     EONERC, RWTH Aachen University
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -57,6 +57,8 @@ namespace DPsim {
         CPS::SystemTopology mSystem;
         /// Vector of transformer components
         std::vector<std::shared_ptr<CPS::SP::Ph1::Transformer>> mTransformers;
+        /// Vector of transformer components
+        std::vector<std::shared_ptr<CPS::SP::Ph1::Transformer3W>> mTransformers3W;
         /// Vector of solid state transformer components
         std::vector<std::shared_ptr<CPS::SP::Ph1::SolidStateTransformer>> mSolidStateTransformers;
         /// Vector of synchronous generator components

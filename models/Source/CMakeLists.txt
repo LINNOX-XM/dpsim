@@ -90,6 +90,7 @@ list(APPEND CPS_SOURCES
 	SP/SP_Ph1_Load.cpp
 	SP/SP_Ph1_Switch.cpp
 	SP/SP_Ph1_Transformer.cpp
+	SP/SP_Ph1_Transformer3W.cpp
 	SP/SP_Ph1_SolidStateTransformer.cpp
 	SP/SP_Ph1_Shunt.cpp
 	SP/SP_Ph1_SynchronGenerator.cpp
@@ -127,8 +128,8 @@ if(WITH_CIM)
 endif()
 
 if(WITH_PYTHON)
-	list(APPEND CPS_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS})
-	list(APPEND CPS_LIBRARIES ${PYTHON_LIBRARIES})
+	list(APPEND CPS_INCLUDE_DIRS ${Python_INCLUDE_DIRS})
+	list(APPEND CPS_LIBRARIES ${Python_LIBRARIES})
 
 if(WITH_NUMPY)
 	list(APPEND CPS_SOURCES AttributeNumPy.cpp)
